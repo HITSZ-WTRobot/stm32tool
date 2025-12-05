@@ -1,4 +1,4 @@
-# init stm32 project
+# stm32tool
 
 本工具遵照 [STM32 + Git 多人合作方案](https://syhanjin.moe/20250908/698d9cb67753/) 初始化项目结构
 
