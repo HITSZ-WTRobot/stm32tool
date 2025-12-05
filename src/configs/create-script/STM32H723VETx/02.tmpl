@@ -1,0 +1,18 @@
+config load {project_name}.ioc
+set ip parameters CORTEX_M7 CPU_ICache Enabled
+set ip parameters CORTEX_M7 CPU_DCache Enabled
+mmt load pre-config default
+clock set PLLSource 2
+clock set SysClkSource 3
+clock set DIVM1 1
+clock set DIVN1 68
+clock set DIVP1 1
+clock set PLLFRACN 6144
+clock set HPRE 2
+clock set D1PPRE 2
+clock set D2PPRE1 2
+clock set D2PPRE2 2
+clock set D3PPRE 2
+SetCopyLibrary "copy only"
+project generate
+exit

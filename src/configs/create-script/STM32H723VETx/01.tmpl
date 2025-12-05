@@ -1,0 +1,22 @@
+load STM32H723VETx
+set mode RCC HSE-External-Oscillator
+set mode SYS TIM23
+set mode DEBUG Serial_Wire
+project couplefilesbyip 1
+project toolchain "{toolchain}"
+{{ if generate_under_root }}
+project generateunderroot 1
+{{ endif }}
+SetStructure Advanced
+SetCopyLibrary "copy only"
+# 配置 FreeRTOS
+set mode FreeRTOS CMSIS_V2
+set ip parameters FreeRTOS configENABLE_FPU 1
+set ip parameters FreeRTOS Tasks01 "defaultTask,16,128,StartDefaultTask,As weak,NULL,Dynamic,NULL,NULL;init,55,128,Init,As external,NULL,Dynamic,NULL,NULL"
+# 开启 CPU 缓存
+set ip parameters CORTEX_M7 CPU_ICache Enabled
+set ip parameters CORTEX_M7 CPU_DCache Enabled
+set ip parameters RCC HSE_VALUE 8000000
+mmt load pre-config default
+config saveas {ioc_file_path}
+exit

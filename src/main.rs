@@ -1,3 +1,4 @@
+mod creators;
 mod generate_gitignore;
 mod initializers;
 mod patches;
@@ -5,18 +6,18 @@ mod render;
 mod stm32cubemx;
 mod utils;
 
-use crate::contexts::{CreateContext, EIDEConfigContext};
+use crate::creators::CreateContext;
 use crate::generate_gitignore::generate_gitignore;
 use crate::initializers::IdeInitArgs;
-use crate::patches::{apply_patch, Patch};
-use crate::render::{render_file, render_string};
-use crate::stm32cubemx::{generate_code, get_toolchain, run_script, Toolchain};
+use crate::patches::{Patch, apply_patch};
+use crate::render::render_file;
+use crate::stm32cubemx::{Toolchain, generate_code, get_toolchain};
 use crate::utils::get_author;
 use anyhow::anyhow;
 use chrono::Local;
 use clap::{Parser, Subcommand};
 use dialoguer::theme::ColorfulTheme;
-use dialoguer::{Confirm, MultiSelect};
+use dialoguer::{Confirm, MultiSelect, Select};
 use serde::Serialize;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -30,6 +31,17 @@ enum Commands {
 
     /// 创建新项目
     Create(CreateArgs),
+
+    /// 清除生成的代码和构建文件
+    ///
+    /// 运行 git clean -fdX
+    Purge,
+
+    /// 生成代码
+    Generate {
+        #[clap(short, long)]
+        toolchain: Option<Toolchain>,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -100,6 +112,21 @@ fn main() -> anyhow::Result<()> {
         }
         Commands::Create(args) => {
             run_create(args)?;
+        }
+        Commands::Purge => {
+            let status = Command::new("git")
+                .args(vec!["clean", "-fdX"])
+                .stdout(Stdio::null()) // 屏蔽 stdout
+                .stderr(Stdio::null()) // 屏蔽 stderr
+                .status()?;
+            if status.success() {
+                info!("purge successfully!");
+            } else {
+                error!("purge failed!, {}", status);
+            }
+        }
+        Commands::Generate { toolchain } => {
+            generate_code(toolchain)?;
         }
     }
 
@@ -195,6 +222,7 @@ fn run_init(args: InitArgs) -> anyhow::Result<()> {
         let _ = ides[idx].init(&args.init_args, args.force);
     }
 
+    // 突然发现这个不需要
     if !args.skip_non_intrusive_headers {
         if args.skip_generate_user_code {
             info!("Skipping non-intrusive headers due to skip_generate_user_code");
@@ -232,15 +260,6 @@ fn run_init(args: InitArgs) -> anyhow::Result<()> {
     info!("STM32 project initialized!");
     Ok(())
 }
-
-#[derive(Serialize)]
-pub struct CreateContext<'a> {
-    pub project_name: &'a String,
-    pub project_dir: &'a String,
-    pub ioc_file_path: &'a String,
-    pub toolchain: &'a str,
-    pub generate_under_root: bool,
-}
 fn run_create(args: CreateArgs) -> anyhow::Result<()> {
     let path = Path::new(&args.project_name);
     if path.exists() {
@@ -258,7 +277,17 @@ fn run_create(args: CreateArgs) -> anyhow::Result<()> {
     }
     fs::create_dir_all(&args.project_name)?;
     env::set_current_dir(&args.project_name)?;
+
     let current_dir = env::current_dir()?;
+
+    // 选择芯片
+    let mcus = creators::all();
+    let items: Vec<&str> = mcus.iter().map(|i| i.name()).collect();
+
+    let chosen = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Choose MCU")
+        .items(&items)
+        .interact()?;
 
     let ctx = CreateContext {
         project_name: &args.project_name,
@@ -270,34 +299,9 @@ fn run_create(args: CreateArgs) -> anyhow::Result<()> {
         toolchain: get_toolchain(&args.toolchain),
         generate_under_root: args.toolchain == Toolchain::STM32CubeIDE,
     };
-    info!("Using toolchain {}", get_toolchain(&args.toolchain));
 
-    // 渲染初次运行的脚本
-    let script = render_string(include_str!("templates/create-project-cmd1.tmpl"), &ctx)?;
-    info!("Running first script");
-    match run_script(script) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to run first script: {}", e);
-            return Err(anyhow!("Failed to run first script: {}", e));
-        }
-    };
-    info!("Patching .ioc file");
-    apply_patch(&Patch::RegexReplace {
-        file: format!("{}.ioc", args.project_name),
-        pattern: r"RCC\.HSE_VALUE=(\d+)".to_string(),
-        insert: "RCC.HSE_VALUE=8000000".to_string(),
-    })?;
-    // 渲染第二次运行的脚本
-    let script = render_string(include_str!("templates/create-project-cmd2.tmpl"), &ctx)?;
-    info!("Running second script");
-    match run_script(script) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to run second script: {}", e);
-            return Err(anyhow!("Failed to run second script: {}", e));
-        }
-    };
+    info!("Using toolchain {}", get_toolchain(&args.toolchain));
+    mcus[chosen].run(&ctx)?;
 
     if args.run_init {
         info!("Running init process");
