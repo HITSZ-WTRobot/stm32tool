@@ -1,6 +1,6 @@
 use crate::initializers::{FPUType, IdeInitArgs, IdeInitializer};
-use crate::patches::{apply_patch, Patch};
-use crate::stm32cubemx::{generate_code, Toolchain};
+use crate::patches::{Patch, apply_patch};
+use crate::stm32cubemx::{Toolchain, generate_code};
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;

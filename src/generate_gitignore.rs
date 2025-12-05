@@ -1,5 +1,5 @@
 use chrono::Local;
-use include_dir::{include_dir, Dir};
+use include_dir::{Dir, include_dir};
 use serde::Deserialize;
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -23,21 +23,19 @@ struct SubSection {
     files: Option<Vec<String>>,
     files_disabled: Option<Vec<String>>, // 可选：关闭忽略专用
 }
-fn iter_gitignore_configs(config_dir: Option<&str>) -> Box<dyn Iterator<Item=GitignoreConfig>> {
+fn iter_gitignore_configs(config_dir: Option<&str>) -> Box<dyn Iterator<Item = GitignoreConfig>> {
     if let Some(dir) = config_dir {
         // 外部目录：读取文件系统
-        let iter = fs::read_dir(dir)
-            .unwrap()
-            .filter_map(|entry| {
-                entry.ok().and_then(|e| {
-                    let path = e.path();
-                    if path.extension().and_then(|s| s.to_str()) != Some("toml") {
-                        return None;
-                    }
-                    let content = fs::read_to_string(&path).ok()?;
-                    toml::from_str(&content).ok()
-                })
-            });
+        let iter = fs::read_dir(dir).unwrap().filter_map(|entry| {
+            entry.ok().and_then(|e| {
+                let path = e.path();
+                if path.extension().and_then(|s| s.to_str()) != Some("toml") {
+                    return None;
+                }
+                let content = fs::read_to_string(&path).ok()?;
+                toml::from_str(&content).ok()
+            })
+        });
         Box::new(iter)
     } else {
         // 内嵌目录：使用 include_dir

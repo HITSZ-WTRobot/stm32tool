@@ -1,10 +1,10 @@
 use anyhow::Result;
 use clap::ValueEnum;
 use rand::distr::Alphanumeric;
-use rand::{rng, Rng};
+use rand::{Rng, rng};
 use std::cmp::PartialEq;
 use std::fmt::Write;
-use std::fs::{remove_file, File};
+use std::fs::{File, remove_file};
 use std::io::Write as IoWrite;
 use std::process::{Command, Stdio};
 use std::{env, fs};
@@ -131,6 +131,8 @@ pub fn run_script(script: String) -> Result<()> {
                 format!("{dir}\\jre\\bin\\java.exe -jar {dir}\\STM32CubeMX.exe -s {tmp_path} -q")
                     .as_str(),
             ])
+            .stdout(Stdio::null()) // 屏蔽 stdout
+            .stderr(Stdio::null()) // 屏蔽 stderr
             .status()
     } else {
         Command::new("stm32cubemx")
