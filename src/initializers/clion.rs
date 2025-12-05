@@ -1,9 +1,10 @@
 use crate::initializers::{FPUType, IdeInitArgs, IdeInitializer};
 use crate::patches::{apply_patch, Patch};
 use crate::stm32cubemx::{generate_code, Toolchain};
-use anyhow::anyhow;
+use std::fs::File;
+use std::io::Write;
 use std::path::Path;
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 pub struct CLion;
 
@@ -15,11 +16,16 @@ impl IdeInitializer for CLion {
     fn init(&self, args: &IdeInitArgs, _force: bool) -> anyhow::Result<()> {
         info!("Initializing CLion project...");
 
+        let mut template_exists: bool = true;
+
         if !Path::new("CMakeLists_template.txt").exists() {
-            error!("CMakeLists_template.txt is not exists, initialization failed");
-            return Err(anyhow!(
-                "CMakeLists_template.txt is not exists, initialization failed"
-            ));
+            template_exists = false;
+            File::create("CMakeLists_template.txt")?
+                .write_all(include_str!("../templates/clion-cmakelists-template.tmpl").as_ref())?;
+            // error!("CMakeLists_template.txt is not exists, initialization failed");
+            // return Err(anyhow!(
+            //     "CMakeLists_template.txt is not exists, initialization failed"
+            // ));
         }
 
         apply_patch(&Patch::Replace {
@@ -42,15 +48,18 @@ impl IdeInitializer for CLion {
                 marker: "#Uncomment for software floating point".to_string(),
             }),
         }?;
-        info!("Try to regenerate code(using STM32CubeMX)...");
-        match generate_code(Some(Toolchain::STM32CubeIDE)) {
-            Ok(_) => {
-                info!("Regenerate code successfully!")
-            }
-            Err(_) => {
-                warn!("Regenerate code failed, please regenerate code manually!");
-            }
-        };
+        if template_exists {
+            // 原本存在 CMakeLists_template.txt，应该处于 CLion 环境下，尝试重生成
+            info!("Try to regenerate code(using STM32CubeMX)...");
+            match generate_code(Some(Toolchain::STM32CubeIDE)) {
+                Ok(_) => {
+                    info!("Regenerate code successfully!")
+                }
+                Err(_) => {
+                    warn!("Regenerate code failed, please regenerate code manually!");
+                }
+            };
+        }
         Ok(())
     }
 }
