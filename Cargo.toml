@@ -1,5 +1,5 @@
 [package]
-name = "init_stm32_project"
+name = "stm32tool"
 version = "0.1.0"
 edition = "2024"
 

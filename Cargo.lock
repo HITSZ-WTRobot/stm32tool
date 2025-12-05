@@ -312,26 +312,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "init_stm32_project"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "dialoguer",
- "include_dir",
- "makefile_parser",
- "rand",
- "regex",
- "serde",
- "serde_json",
- "tinytemplate",
- "toml",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -621,6 +601,26 @@ name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
+
+[[package]]
+name = "stm32tool"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "dialoguer",
+ "include_dir",
+ "makefile_parser",
+ "rand",
+ "regex",
+ "serde",
+ "serde_json",
+ "tinytemplate",
+ "toml",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "strsim"
