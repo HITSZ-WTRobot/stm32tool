@@ -193,6 +193,7 @@ fn run_init(args: InitArgs) -> anyhow::Result<()> {
             "UserCode/interfaces",
             "UserCode/controllers",
             "UserCode/app",
+            "Modules",
         ];
         for dir in directories {
             fs::create_dir_all(dir)?;
