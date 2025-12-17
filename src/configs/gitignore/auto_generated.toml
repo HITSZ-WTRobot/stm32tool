@@ -3,5 +3,5 @@ description = "auto-generated files by ide"
 enabled = true
 
 [sections.clion]
-enabled = true
+enabled = false
 files = ["CMakeLists.txt"]
