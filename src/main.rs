@@ -51,7 +51,7 @@ struct CreateArgs {
 
     /// 使用的工具链
     #[clap(short, long)]
-    #[arg(default_value = "stm32cubeide")]
+    #[arg(default_value = "cmake")]
     toolchain: Toolchain,
 
     /// 是否在创建后立即初始化项目
