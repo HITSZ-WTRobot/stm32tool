@@ -15,11 +15,7 @@ impl IdeInitializer for CMake {
         if args.fpu == FPUType::Hard {
             apply_patch(&Patch::Append {
                 file: "CMakeLists.txt".to_string(),
-                after: "# Setup compiler settings\n\
-                    set(CMAKE_C_STANDARD 11)\n\
-                    set(CMAKE_C_STANDARD_REQUIRED ON)\n\
-                    set(CMAKE_C_EXTENSIONS ON)"
-                    .to_string(),
+                after: "set(CMAKE_C_EXTENSIONS ON)".to_string(),
                 insert: "\n#Uncomment for hardware floating point\n\
                      add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)\n\
                      add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)\n\
@@ -31,11 +27,7 @@ impl IdeInitializer for CMake {
         } else {
             apply_patch(&Patch::Append {
                 file: "CMakeLists.txt".to_string(),
-                after: "# Setup compiler settings\
-                    \nset(CMAKE_C_STANDARD 11)\
-                    \nset(CMAKE_C_STANDARD_REQUIRED ON)\
-                    \nset(CMAKE_C_EXTENSIONS ON)"
-                    .to_string(),
+                after: "set(CMAKE_C_EXTENSIONS ON)".to_string(),
                 insert: "\n#Uncomment for software floating point\
                      \nadd_compile_options(-mfloat-abi=soft)\
                      \n\
