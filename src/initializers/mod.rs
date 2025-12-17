@@ -1,9 +1,11 @@
 use crate::initializers::clion::CLion;
+use crate::initializers::cmake::CMake;
 use crate::initializers::eide::EIDE;
 use clap::{Parser, ValueEnum};
 use tracing::info;
 
 mod clion;
+mod cmake;
 mod eide;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -25,7 +27,7 @@ pub trait IdeInitializer {
 }
 
 pub fn all() -> Vec<Box<dyn IdeInitializer>> {
-    vec![Box::new(CLion), Box::new(EIDE)]
+    vec![Box::new(CMake), Box::new(CLion), Box::new(EIDE)]
 }
 
 pub struct IdeNone;
