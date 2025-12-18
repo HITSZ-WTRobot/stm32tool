@@ -62,27 +62,13 @@ impl IdeInitializer for CMake {
             file: "CMakeLists.txt".to_string(),
             after: "list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)".to_string(),
             insert: "\n# Add dependence from library\
-                     \n# ===================== DEPENDENCIES =====================
+                     \n# ===================== DEPENDENCIES =====================\
                      \n# e.g.\
                      \n#add_subdirectory(library/motor_drivers/UserCode)\
                      \n\
-                     \nset(USER_LIBRARIES \"\")\
-                     \n\
-                     \n# =======================================================\
-                     \n\
-                     \n# every library will depend on stm32cubemx\
-                     \nforeach (LIBRARY IN LISTS USER_LIBRARIES)\
-                     \n    target_link_libraries(${LIBRARY} PRIVATE stm32cubemx)\
-                     \nendforeach ()"
+                     \n# ======================================================="
                 .to_string(),
             marker: "# Add dependence from library".to_string(),
-        })?;
-
-        apply_patch(&Patch::Append {
-            file: "CMakeLists.txt".to_string(),
-            after: "# Add user defined libraries".to_string(),
-            insert: "    ${USER_LIBRARIES}".to_string(),
-            marker: "${USER_LIBRARIES}".to_string(),
         })?;
 
         Ok(())
