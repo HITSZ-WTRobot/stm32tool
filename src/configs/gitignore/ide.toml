@@ -3,11 +3,11 @@ description = "IDE projects, editor configs, plugins"
 enabled = true
 
 [sections.clion]
-enabled = false
+enabled = true
 files = [".idea/"]
 
 [sections.vscode]
-enabled = false
+enabled = true
 files = [".vscode/"]
 
 [sections.eide]

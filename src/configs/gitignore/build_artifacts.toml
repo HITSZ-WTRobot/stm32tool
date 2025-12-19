@@ -14,5 +14,6 @@ ignore = [
     "*.hex",
     "*.map",
     "*.lst",
-    "*.srec"
+    "*.srec",
+    ".clangd"
 ]
