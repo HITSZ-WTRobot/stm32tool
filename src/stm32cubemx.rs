@@ -1,10 +1,10 @@
 use anyhow::Result;
 use clap::ValueEnum;
 use rand::distr::Alphanumeric;
-use rand::{Rng, rng};
+use rand::{rng, Rng};
 use std::cmp::PartialEq;
 use std::fmt::Write;
-use std::fs::{File, remove_file};
+use std::fs::{remove_file, File};
 use std::io::Write as IoWrite;
 use std::process::{Command, Stdio};
 use std::{env, fs};
@@ -109,9 +109,15 @@ pub fn generate_code(toolchain: Option<Toolchain>) -> Result<()> {
 }
 
 pub fn run_script(script: String) -> Result<()> {
-    let tmp_path = format!("./tmp-script-{}", generate_random_string(8));
-    let mut temp_script_file = File::create_new(&tmp_path)?;
+    // generate tmp file in system temp directory
+    let tmp_path = env::temp_dir().join(format!("tmp-script-{}", generate_random_string(8)));
+    let tmp_path_str = tmp_path.to_str().expect("failed to convert path to string");
+
+    // create temporary script file
+    let mut temp_script_file = File::create(&tmp_path)?;
     temp_script_file.write_all(script.as_bytes())?;
+
+    // run stm32cubemx
     let status = if cfg!(target_os = "windows") {
         // return Err(anyhow::anyhow!("not support windows"));
         let dir = match env::var("STM32CubeMX_dir") {
@@ -128,22 +134,27 @@ pub fn run_script(script: String) -> Result<()> {
         Command::new("cmd")
             .args([
                 "/C",
-                format!("{dir}\\jre\\bin\\java.exe -jar {dir}\\STM32CubeMX.exe -s {tmp_path} -q")
-                    .as_str(),
+                &format!(
+                    r#""{dir}\jre\bin\java.exe" -jar "{dir}\STM32CubeMX.exe" -s "{tmp_path_str}" -q"#,
+                ),
             ])
-            .stdout(Stdio::null()) // 屏蔽 stdout
-            .stderr(Stdio::null()) // 屏蔽 stderr
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .status()
     } else {
         Command::new("stm32cubemx")
             .arg("-s")
-            .arg(&tmp_path)
-            .stdout(Stdio::null()) // 屏蔽 stdout
-            .stderr(Stdio::null()) // 屏蔽 stderr
+            .arg(tmp_path_str)
             .arg("-q")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .status()
     };
+
+    // remove temp file
     remove_file(tmp_path)?;
+
+    // handle result
     match status {
         Ok(status) if status.success() => Ok(()),
         Ok(status) => {
