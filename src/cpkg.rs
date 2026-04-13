@@ -42,8 +42,10 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
     run_command(
         add_command,
         "cpkg add --offline utils（若本地或缓存索引不可用，则不支持离线完成）",
-        true,
+        false,
     )?;
+
+    warn!("Please run `cpkg sync` manually to finish project dependency synchronization.");
 
     Ok(())
 }
