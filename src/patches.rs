@@ -29,7 +29,7 @@ pub enum Patch {
 }
 
 pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
-    let content = match fs::read_to_string(&get_file(patch)) {
+    let content = match fs::read_to_string(get_file(patch)) {
         Ok(c) => c,
         Err(_) => return Ok(()), // 文件不存在，跳过
     };
@@ -48,7 +48,7 @@ pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
                 .lines()
                 .map(|line| {
                     if line.contains(after) {
-                        format!("{}\n{}", line, insert)
+                        format!("{line}\n{insert}")
                     } else {
                         line.to_string()
                     }
@@ -76,18 +76,16 @@ pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
             let mut lines: Vec<String> = content.lines().map(|l| l.to_string()).collect();
 
             let mut in_block = false;
-            for i in 0..lines.len() {
-                if lines[i].contains(marker) {
+            for line in &mut lines {
+                if line.contains(marker) {
                     in_block = true;
-                    continue; // marker 行本身保留
+                    continue;
                 }
 
                 if in_block {
-                    if lines[i].starts_with('#') {
-                        // 去掉行首 "# " 或 "#"
-                        lines[i] = lines[i].trim_start_matches('#').trim().to_string();
+                    if line.starts_with('#') {
+                        *line = line.trim_start_matches('#').trim().to_string();
                     } else {
-                        // 遇到非注释行/空行，说明 block 结束
                         break;
                     }
                 }

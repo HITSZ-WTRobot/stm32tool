@@ -1,9 +1,7 @@
-use crate::creators::{CreateContext, STM32ProjectCreator};
+use crate::configs::cubemx_scripts;
+use crate::creators::{CreateContext, STM32ProjectCreator, run_rendered_script};
 use crate::patches::{Patch, apply_patch};
-use crate::render::render_string;
-use crate::stm32cubemx::run_script;
-use anyhow::anyhow;
-use tracing::{error, info};
+use tracing::info;
 
 pub struct STM32H723VETx;
 
@@ -12,19 +10,9 @@ impl STM32ProjectCreator for STM32H723VETx {
         "STM32H723VETx"
     }
 
-    fn run(&self, ctx: &CreateContext) -> anyhow::Result<()> {
-        info!("Running first script");
-        let script = render_string(
-            include_str!("../configs/create-script/STM32H723VETx/01.tmpl"),
-            &ctx,
-        )?;
-        match run_script(script) {
-            Ok(_) => {}
-            Err(e) => {
-                error!("Failed to run first script: {}", e);
-                return Err(anyhow!("Failed to run first script: {}", e));
-            }
-        };
+    fn run(&self, ctx: &CreateContext<'_>) -> anyhow::Result<()> {
+        run_rendered_script("bootstrap", cubemx_scripts::stm32h723vetx::BOOTSTRAP, ctx)?;
+
         info!("Patching .ioc file");
         apply_patch(&Patch::RegexReplace {
             file: format!("{}.ioc", ctx.project_name),
@@ -34,21 +22,9 @@ impl STM32ProjectCreator for STM32H723VETx {
         apply_patch(&Patch::RegexReplace {
             file: format!("{}.ioc", ctx.project_name),
             pattern: "(MMT.+\n)+".to_string(),
-            insert: include_str!("../configs/create-script/STM32H723VETx/default.mmt.tmpl")
-                .to_string(),
+            insert: cubemx_scripts::stm32h723vetx::DEFAULT_MEMORY_MAP.to_string(),
         })?;
-        // 渲染第二次运行的脚本
-        let script = render_string(
-            include_str!("../configs/create-script/STM32H723VETx/02.tmpl"),
-            &ctx,
-        )?;
-        info!("Running second script");
-        match run_script(script) {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("Failed to run second script: {}", e);
-                Err(anyhow!("Failed to run second script: {}", e))
-            }
-        }
+
+        run_rendered_script("generate", cubemx_scripts::stm32h723vetx::GENERATE, ctx)
     }
 }

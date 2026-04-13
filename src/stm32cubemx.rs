@@ -20,14 +20,12 @@ fn get_ioc_files() -> Vec<String> {
     let mut ioc_files: Vec<String> = Vec::new();
     let current_dir = std::env::current_dir().expect("Failed to get current directory");
     if let Ok(entries) = fs::read_dir(current_dir) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if let Some(extension) = path.extension() {
-                    if extension == "ioc" {
-                        ioc_files.push(path.to_str().unwrap().to_string());
-                    }
-                }
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if let Some(extension) = path.extension()
+                && extension == "ioc"
+            {
+                ioc_files.push(path.to_str().unwrap().to_string());
             }
         }
     }
@@ -46,10 +44,10 @@ pub fn generate_code() -> Result<()> {
     }
     let ioc_file = ioc_files.first().unwrap();
     let mut script = String::new();
-    write!(script, "config load {}\n", ioc_file)?;
-    write!(script, "project toolchain \"{}\"\n", CMAKE_TOOLCHAIN)?;
-    write!(script, "project couplefilesbyip 1\n")?;
-    write!(script, "project generate\n")?;
+    writeln!(script, "config load {ioc_file}")?;
+    writeln!(script, "project toolchain \"{CMAKE_TOOLCHAIN}\"")?;
+    writeln!(script, "project couplefilesbyip 1")?;
+    writeln!(script, "project generate")?;
     write!(script, "exit")?;
 
     run_script(script)
@@ -106,11 +104,11 @@ pub fn run_script(script: String) -> Result<()> {
         Ok(status) if status.success() => Ok(()),
         Ok(status) => {
             error!("Run script failed with status: {}", status);
-            Err(anyhow::anyhow!("Run script failed with status: {}", status))
+            Err(anyhow::anyhow!("Run script failed with status: {status}"))
         }
         Err(e) => {
             error!("Failed to execute stm32cubemx: {}", e);
-            Err(anyhow::anyhow!("Failed to execute stm32cubemx: {}", e))
+            Err(anyhow::anyhow!("Failed to execute stm32cubemx: {e}"))
         }
     }
 }

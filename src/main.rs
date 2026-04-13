@@ -1,11 +1,13 @@
 mod cli;
 mod commands;
+mod configs;
 mod creators;
-mod generate_gitignore;
+mod gitignore;
 mod initializers;
 mod patches;
 mod render;
 mod stm32cubemx;
+mod templates;
 mod utils;
 
 use crate::cli::Cli;

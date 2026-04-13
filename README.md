@@ -6,6 +6,13 @@
 
 **Windows 下需要配置环境变量 `STM32CubeMX_dir` 为 `STM32CubeMX` 的安装路径**
 
+## 项目结构
+
+- `src/commands/`：各个 CLI 子命令的执行入口，按命令拆分，避免逻辑堆在单文件中。
+- `src/configs/`：内置配置资产；其中 `gitignore/` 存放 `.gitignore` 片段，`stm32cubemx/scripts/` 存放按 MCU 分类的 CubeMX 脚本模板。
+- `src/templates/`：项目初始化时写入目标工程的文本模板。
+- `src/configs.rs` 与 `src/templates.rs`：统一管理内置资产入口，业务代码不再直接引用深层相对路径。
+
 ## Help
 
 ```
