@@ -32,4 +32,4 @@
 提交应尽量聚焦单一变更点，commit message 可采用 `type(scope): content`，例如 `fix(stm32cubemx): improve temp file handling`。如本地提交受签名配置影响，可显式关闭 GPG 签名。PR 需要说明用户可见影响、验证方式、必要的 CLI 输出示例；若有关联 issue，一并链接。
 
 ## 配置提示
-Windows 环境下使用 CubeMX 相关功能前，应设置 `STM32CubeMX_dir` 环境变量。CI 当前覆盖 Linux 与 Windows，日常开发也应保持跨平台兼容，不要让本地流程依赖单一平台专属工具链。
+Windows 环境下使用 CubeMX 相关功能前，应设置 `STM32CubeMX_PATH` 环境变量。CI 当前覆盖 Linux 与 Windows，日常开发也应保持跨平台兼容，不要让本地流程依赖单一平台专属工具链。

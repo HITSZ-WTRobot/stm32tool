@@ -24,10 +24,10 @@ function Select-CubeMXPath {
 }
 
 # ------------------------------------------------------------
-# Step 1: Environment Variable Check (STM32CubeMX_dir)
+# Step 1: Environment Variable Check (STM32CubeMX_PATH)
 # ------------------------------------------------------------
 Write-Host ">>> Step 1: Checking environment variables..." -ForegroundColor Cyan
-$cubemxDir = [Environment]::GetEnvironmentVariable("STM32CubeMX_dir", "User")
+$cubemxDir = [Environment]::GetEnvironmentVariable("STM32CubeMX_PATH", "User")
 
 $validCubeMX = $false
 if ($cubemxDir -and $cubemxDir.Trim().Length -gt 0) {
@@ -37,15 +37,15 @@ if ($cubemxDir -and $cubemxDir.Trim().Length -gt 0) {
 }
 
 if (-not $validCubeMX) {
-    Write-Host "[!] STM32CubeMX_dir not found or invalid. Please select it manually." -ForegroundColor Yellow
+    Write-Host "[!] STM32CubeMX_PATH not found or invalid. Please select it manually." -ForegroundColor Yellow
     $cubemxDir = Select-CubeMXPath
 
     [Environment]::SetEnvironmentVariable(
-        "STM32CubeMX_dir",
+        "STM32CubeMX_PATH",
         $cubemxDir,
         "User"
     )
-    Write-Host "[+] Successfully set STM32CubeMX_dir to: $cubemxDir" -ForegroundColor Green
+    Write-Host "[+] Successfully set STM32CubeMX_PATH to: $cubemxDir" -ForegroundColor Green
 } else {
     Write-Host "[+] Detected STM32CubeMX at: $cubemxDir" -ForegroundColor Green
 }
