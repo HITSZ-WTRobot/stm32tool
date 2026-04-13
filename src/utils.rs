@@ -1,6 +1,8 @@
 use anyhow::anyhow;
+use std::io::{self, BufRead, BufReader, Read};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Output, Stdio};
+use std::thread;
 use std::{env, fs};
 use tracing::{Level, debug};
 
@@ -44,9 +46,7 @@ pub fn command_status(mut command: Command, label: &str) -> std::io::Result<Exit
     debug!("Running command: {label}");
 
     if tracing::enabled!(Level::DEBUG) {
-        let output = command.output();
-        log_command_result(label, &output);
-        return output.map(|output| output.status);
+        return command_status_streaming(command, label);
     }
 
     command.stdout(Stdio::null()).stderr(Stdio::null()).status()
@@ -80,5 +80,110 @@ fn log_command_stream(label: &str, stream: &str, bytes: &[u8]) {
 
     for line in String::from_utf8_lossy(bytes).lines() {
         debug!("{label} {stream}: {line}");
+    }
+}
+
+fn command_status_streaming(mut command: Command, label: &str) -> io::Result<ExitStatus> {
+    command.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+    let mut child = command.spawn()?;
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| io::Error::other(format!("Missing stdout pipe for {label}")))?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| io::Error::other(format!("Missing stderr pipe for {label}")))?;
+
+    let stdout_handle = spawn_stream_logger(label.to_string(), "stdout", stdout);
+    let stderr_handle = spawn_stream_logger(label.to_string(), "stderr", stderr);
+
+    let status = child.wait()?;
+
+    join_stream_logger(stdout_handle, label, "stdout")?;
+    join_stream_logger(stderr_handle, label, "stderr")?;
+
+    debug!("Command finished: {label} ({status})");
+    Ok(status)
+}
+
+fn spawn_stream_logger<R>(
+    label: String,
+    stream: &'static str,
+    reader: R,
+) -> thread::JoinHandle<io::Result<()>>
+where
+    R: Read + Send + 'static,
+{
+    thread::spawn(move || {
+        let mut reader = BufReader::new(reader);
+        let mut buffer = Vec::new();
+
+        loop {
+            buffer.clear();
+            let bytes_read = reader.read_until(b'\n', &mut buffer)?;
+            if bytes_read == 0 {
+                break;
+            }
+
+            while matches!(buffer.last(), Some(b'\n' | b'\r')) {
+                buffer.pop();
+            }
+
+            let line = String::from_utf8_lossy(&buffer);
+            debug!("{label} {stream}: {line}");
+        }
+
+        Ok(())
+    })
+}
+
+fn join_stream_logger(
+    handle: thread::JoinHandle<io::Result<()>>,
+    label: &str,
+    stream: &str,
+) -> io::Result<()> {
+    match handle.join() {
+        Ok(result) => result,
+        Err(_) => Err(io::Error::other(format!(
+            "Failed to join {stream} logger thread for {label}"
+        ))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::command_status;
+    use std::process::Command;
+    use tracing::Level;
+
+    #[test]
+    fn command_status_supports_streaming_in_debug_mode() {
+        let subscriber = tracing_subscriber::fmt()
+            .with_max_level(Level::DEBUG)
+            .with_test_writer()
+            .finish();
+
+        tracing::subscriber::with_default(subscriber, || {
+            let command = test_command();
+            let status = command_status(command, "test command").expect("run command");
+
+            assert!(status.success());
+        });
+    }
+
+    #[cfg(target_os = "windows")]
+    fn test_command() -> Command {
+        let mut command = Command::new("cmd");
+        command.args(["/C", "echo hello & echo error 1>&2"]);
+        command
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    fn test_command() -> Command {
+        let mut command = Command::new("sh");
+        command.args(["-c", "printf 'hello\\n'; printf 'error\\n' 1>&2"]);
+        command
     }
 }
