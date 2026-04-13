@@ -1,12 +1,11 @@
-use std::process::{Command, Stdio};
+use crate::utils::command_status;
+use std::process::Command;
 use tracing::{error, info};
 
 pub fn run() -> anyhow::Result<()> {
-    let status = Command::new("git")
-        .args(["clean", "-fdX"])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()?;
+    let mut command = Command::new("git");
+    command.args(["clean", "-fdX"]);
+    let status = command_status(command, "git clean -fdX")?;
 
     if status.success() {
         info!("purge successfully!");

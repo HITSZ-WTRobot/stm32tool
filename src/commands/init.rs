@@ -4,13 +4,13 @@ use crate::gitignore::generate_gitignore;
 use crate::initializers;
 use crate::render::render_file;
 use crate::templates;
-use crate::utils::get_author;
+use crate::utils::{command_status, get_author};
 use chrono::Local;
 use serde::Serialize;
-use std::{fs, process::Command, process::Stdio};
-use tracing::{error, info};
+use std::{fs, process::Command};
+use tracing::{debug, error, info};
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 struct InitContext {
     author: String,
     date: String,
@@ -20,7 +20,9 @@ struct InitContext {
 const USER_CODE_DIRECTORIES: [&str; 1] = ["UserCode"];
 
 pub fn run(args: InitArgs) -> anyhow::Result<()> {
+    debug!(?args, "Running init command");
     let ctx = init_context();
+    debug!(?ctx, "Prepared init context");
 
     init_git_repository();
     info!("Generating .gitignore file...");
@@ -56,11 +58,9 @@ fn init_context() -> InitContext {
 
 fn init_git_repository() {
     info!("Initializing git repository...");
-    let status = Command::new("git")
-        .arg("init")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status();
+    let mut command = Command::new("git");
+    command.arg("init");
+    let status = command_status(command, "git init");
 
     match status {
         Ok(status) if status.success() => {
@@ -77,6 +77,7 @@ fn init_git_repository() {
 
 fn generate_user_code_layout(ctx: &InitContext, force: bool) -> anyhow::Result<()> {
     info!("Generating user code directories...");
+    debug!(?ctx, force, "Generating default UserCode layout");
 
     for dir in USER_CODE_DIRECTORIES {
         fs::create_dir_all(dir)?;
@@ -90,12 +91,15 @@ fn generate_user_code_layout(ctx: &InitContext, force: bool) -> anyhow::Result<(
 }
 
 fn create_initial_commit() {
-    let status = Command::new("git").args(["add", "."]).status();
+    debug!("Creating initial git commit");
+    let mut add_command = Command::new("git");
+    add_command.args(["add", "."]);
+    let status = command_status(add_command, "git add .");
     match status {
         Ok(status) if status.success() => {
-            let status = Command::new("git")
-                .args(["commit", "-m", "Initial commit"])
-                .status();
+            let mut commit_command = Command::new("git");
+            commit_command.args(["commit", "-m", "Initial commit"]);
+            let status = command_status(commit_command, "git commit -m Initial commit");
             if !matches!(status, Ok(status) if status.success()) {
                 error!("Git first commit failed");
             }

@@ -1,7 +1,7 @@
 use crate::configs::cubemx_scripts;
 use crate::creators::{CreateContext, STM32ProjectCreator, run_rendered_script};
 use crate::patches::{Patch, apply_patch};
-use tracing::info;
+use tracing::{debug, info};
 
 pub struct STM32H723VETx;
 
@@ -11,6 +11,7 @@ impl STM32ProjectCreator for STM32H723VETx {
     }
 
     fn run(&self, ctx: &CreateContext<'_>) -> anyhow::Result<()> {
+        debug!(?ctx, "Running STM32H723VETx project creator");
         run_rendered_script("bootstrap", cubemx_scripts::stm32h723vetx::BOOTSTRAP, ctx)?;
 
         info!("Patching .ioc file");

@@ -5,7 +5,7 @@ use crate::stm32cubemx::run_script;
 use anyhow::Context;
 use clap::Parser;
 use serde::Serialize;
-use tracing::info;
+use tracing::{debug, info};
 
 mod stm32f407vetx;
 mod stm32h723vetx;
@@ -13,7 +13,7 @@ mod stm32h723vetx;
 #[derive(Debug, Parser)]
 pub struct CreatorArgs {}
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct CreateContext<'a> {
     pub project_name: &'a str,
     pub project_dir: &'a str,
@@ -37,6 +37,12 @@ pub fn run_rendered_script(
     info!("Running {step} script");
     let script =
         render_string(template, ctx).with_context(|| format!("Failed to render {step} script"))?;
+    debug!(
+        step,
+        bytes = script.len(),
+        lines = script.lines().count(),
+        "Rendered STM32CubeMX script"
+    );
 
     run_script(script).with_context(|| format!("Failed to run {step} script"))
 }

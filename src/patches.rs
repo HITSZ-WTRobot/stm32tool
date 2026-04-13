@@ -1,6 +1,7 @@
 use regex::Regex;
 use serde::Deserialize;
 use std::fs;
+use tracing::debug;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "mode")]
@@ -29,9 +30,15 @@ pub enum Patch {
 }
 
 pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
-    let content = match fs::read_to_string(get_file(patch)) {
+    let file = get_file(patch);
+    debug!(file, ?patch, "Applying file patch");
+
+    let content = match fs::read_to_string(file) {
         Ok(c) => c,
-        Err(_) => return Ok(()), // 文件不存在，跳过
+        Err(error) => {
+            debug!(file, %error, "Skipping patch because target file is unavailable");
+            return Ok(());
+        }
     };
 
     let new_content = match patch {
@@ -42,6 +49,10 @@ pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
             ..
         } => {
             if content.contains(marker) {
+                debug!(
+                    file,
+                    marker, "Skipping append patch because marker already exists"
+                );
                 return Ok(());
             }
             content
@@ -59,6 +70,10 @@ pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
         }
         Patch::Replace { find, insert, .. } => {
             if content.contains(insert) {
+                debug!(
+                    file,
+                    insert, "Skipping replace patch because target content already exists"
+                );
                 return Ok(());
             }
             content.replace(find, insert)
@@ -68,6 +83,10 @@ pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
         } => {
             let re = Regex::new(pattern).unwrap();
             if re.is_match(&content) && content.contains(insert) {
+                debug!(
+                    file,
+                    pattern, "Skipping regex patch because replacement already exists"
+                );
                 return Ok(());
             }
             re.replace_all(&content, insert.as_str()).to_string()
@@ -95,7 +114,13 @@ pub fn apply_patch(patch: &Patch) -> std::io::Result<()> {
         }
     };
 
-    fs::write(get_file(patch), new_content)?;
+    if new_content == content {
+        debug!(file, "Patch produced no textual changes");
+        return Ok(());
+    }
+
+    debug!(file, bytes = new_content.len(), "Writing patched file");
+    fs::write(file, new_content)?;
     Ok(())
 }
 

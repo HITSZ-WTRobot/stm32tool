@@ -4,7 +4,7 @@
 
 当前仅支持 STM32CubeMX 的 CMake 工具链；不再提供 Makefile、STM32CubeIDE、Keil、IAR 等非 CMake 生成架构的初始化或生成入口。纯 CMake 项目应保留并跟踪 `CMakeLists.txt`。
 
-**Windows 下需要配置环境变量 `STM32CubeMX_dir` 为 `STM32CubeMX` 的安装路径**
+**Windows 下需要配置环境变量 `STM32CubeMX_PATH` 为 `STM32CubeMX` 的安装路径**
 
 ## 项目结构
 
@@ -25,7 +25,7 @@
 ```
 STM32 CMake project helper tool
 
-Usage: stm32tool <COMMAND>
+Usage: stm32tool [OPTIONS] <COMMAND>
 
 Commands:
   init      初始化 STM32 CMake 项目
@@ -35,5 +35,6 @@ Commands:
   help      Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help  Print help
+  -v, --verbose  输出调试信息，包括外部命令的 stdout/stderr
+  -h, --help     Print help
 ```

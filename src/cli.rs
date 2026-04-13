@@ -1,14 +1,18 @@
 use clap::{Parser, Subcommand};
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(name = "stm32-project-tool")]
 #[command(about = "STM32 CMake project helper tool", long_about = None)]
 pub struct Cli {
+    /// 输出调试信息，包括外部命令的 stdout/stderr
+    #[arg(short, long, global = true, default_value_t = false)]
+    pub verbose: bool,
+
     #[command(subcommand)]
     pub command: Commands,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 pub enum Commands {
     /// 初始化 STM32 CMake 项目
     Init(InitArgs),
@@ -52,4 +56,25 @@ pub struct InitArgs {
     /// 强制重新生成
     #[arg(long)]
     pub force: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_verbose_before_subcommand() {
+        let cli = Cli::try_parse_from(["stm32tool", "-v", "purge"]).unwrap();
+
+        assert!(cli.verbose);
+        assert!(matches!(cli.command, Commands::Purge));
+    }
+
+    #[test]
+    fn parses_verbose_after_subcommand() {
+        let cli = Cli::try_parse_from(["stm32tool", "purge", "-v"]).unwrap();
+
+        assert!(cli.verbose);
+        assert!(matches!(cli.command, Commands::Purge));
+    }
 }

@@ -1,8 +1,8 @@
-use crate::utils::find_single_ioc_file;
+use crate::utils::{command_status, find_single_ioc_file};
 use anyhow::{Context, anyhow};
 use std::ffi::OsString;
-use std::process::{Command, Stdio};
-use tracing::{info, warn};
+use std::process::Command;
+use tracing::{debug, info, warn};
 
 pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
     if !is_available() {
@@ -22,6 +22,12 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
         .file_name()
         .ok_or_else(|| anyhow!("Invalid ioc file path: {}", ioc_file.display()))?
         .to_os_string();
+    debug!(
+        project_name,
+        ioc_file = %ioc_file.display(),
+        force,
+        "Preparing cpkg bootstrap"
+    );
 
     info!("Initializing cpkg project metadata");
     let mut init_command = Command::new("cpkg");
@@ -34,7 +40,7 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
         .arg(&project_name)
         .arg("--ioc")
         .arg(&ioc_arg);
-    run_command(init_command, "cpkg init", false)?;
+    run_command(init_command, "cpkg init")?;
 
     info!("Adding cpkg dependency utils in offline mode");
     let mut add_command = Command::new("cpkg");
@@ -42,7 +48,6 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
     run_command(
         add_command,
         "cpkg add --offline utils（若本地或缓存索引不可用，则不支持离线完成）",
-        false,
     )?;
 
     warn!("Please run `cpkg sync` manually to finish project dependency synchronization.");
@@ -51,22 +56,15 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
 }
 
 fn is_available() -> bool {
-    Command::new("cpkg")
-        .arg("--version")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .is_ok_and(|status| status.success())
+    let mut command = Command::new("cpkg");
+    command.arg("--version");
+
+    command_status(command, "cpkg --version").is_ok_and(|status| status.success())
 }
 
-fn run_command(mut command: Command, label: &str, forward_output: bool) -> anyhow::Result<()> {
-    if !forward_output {
-        command.stdout(Stdio::null()).stderr(Stdio::null());
-    }
-
-    let status = command
-        .status()
-        .with_context(|| format!("Failed to execute {label}"))?;
+fn run_command(command: Command, label: &str) -> anyhow::Result<()> {
+    let status =
+        command_status(command, label).with_context(|| format!("Failed to execute {label}"))?;
 
     if status.success() {
         return Ok(());

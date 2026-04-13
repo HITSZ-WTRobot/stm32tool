@@ -1,5 +1,5 @@
 use crate::patches::{Patch, apply_patch};
-use tracing::info;
+use tracing::{debug, info};
 
 const CMAKE_C_BLOCK: &str = r#"set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -20,6 +20,7 @@ add_compile_options(
 
 pub fn init() -> anyhow::Result<()> {
     info!("Initializing CMake project...");
+    debug!("Applying STM32 CMake initialization patches to CMakeLists.txt");
 
     apply_patch(&Patch::Replace {
         file: "CMakeLists.txt".to_string(),
@@ -72,5 +73,6 @@ pub fn init() -> anyhow::Result<()> {
         marker: "wtr_link_packages(${CMAKE_PROJECT_NAME})".to_string(),
     })?;
 
+    debug!("Finished applying CMake initialization patches");
     Ok(())
 }
