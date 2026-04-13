@@ -2,9 +2,7 @@
 
 本工具遵照 [STM32 + Git 多人合作方案](https://syhanjin.moe/20250908/698d9cb67753/) 初始化 STM32 CMake 项目结构。
 
-当前仅支持 STM32CubeMX 的 CMake 工具链；不再提供 Makefile、STM32CubeIDE、Keil、IAR 等非 CMake 生成架构的初始化或生成入口。
-
-补充说明：对于 `.gitignore` 中的 `CMakeLists.txt`，只有在 `STM32CubeIDE + CLion` 联合工作流下才建议忽略；纯 `CMake` 项目应保留并跟踪该文件。
+当前仅支持 STM32CubeMX 的 CMake 工具链；不再提供 Makefile、STM32CubeIDE、Keil、IAR 等非 CMake 生成架构的初始化或生成入口。纯 CMake 项目应保留并跟踪 `CMakeLists.txt`。
 
 **Windows 下需要配置环境变量 `STM32CubeMX_dir` 为 `STM32CubeMX` 的安装路径**
 

@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## 项目结构与模块组织
-本仓库是 `stm32tool` 的 Rust workspace。CLI 入口在 `src/main.rs`，只负责参数解析与命令分发；可复用逻辑应放在职责明确的模块中，例如 `src/stm32cubemx.rs`、`src/creators/`、`src/initializers/`、`src/render.rs` 和 `src/patches.rs`。模板与内置配置位于 `src/templates/` 和 `src/configs/`，辅助解析 crate 位于 `makefile_parser/`。新增或重命名源文件时，同步更新最近的构建配置与元数据，例如 `Cargo.toml`、`makefile_parser/Cargo.toml` 或相关模块声明。构建产物应留在 `target/` 等构建目录中，并保持未跟踪状态。
+本仓库是 `stm32tool` 的 Rust workspace。CLI 入口在 `src/main.rs`，只负责启动与命令分发；命令参数定义集中在 `src/cli.rs`，命令执行流程集中在 `src/commands.rs`。可复用逻辑应放在职责明确的模块中，例如 `src/stm32cubemx.rs`、`src/creators/`、`src/initializers/`、`src/render.rs` 和 `src/patches.rs`。模板与内置配置位于 `src/templates/` 和 `src/configs/`。新增或重命名源文件时，同步更新最近的构建配置与元数据，例如 `Cargo.toml` 或相关模块声明。构建产物应留在 `target/` 等构建目录中，并保持未跟踪状态。
 
 ## 构建、测试与常用命令
 - `cargo run -- --help`：先查看顶层帮助。
@@ -17,7 +17,7 @@
 ## 生成文件与元数据
 生成文件、索引文件、集成文件如果可以由工具生成，就不要手动编辑。对自动生成代码或第三方生成目录，优先修改源配置、模板或元数据后重新生成，而不是直接手改结果；除非用户明确要求，不要主动检查或修改生成代码目录。元数据格式迁移应保持版本化、可组合，后续升级只追加新的迁移步骤。若用户提出应长期保留的协作规则，先更新本文件，再继续实现功能。
 
-- 处理 `.gitignore` 与初始化模板时，`CMakeLists.txt` 只应在 `STM32CubeIDE + CLion` 联合工作流下视为应忽略的自动生成文件；纯 `CMake` 项目应保留并跟踪该文件。
+- 当前工具只支持 STM32CubeMX 的 CMake 工具链；不要再为已移除的 `STM32CubeIDE + CLion` 或 `EIDE + VSCode` 流程新增初始化、集成或忽略规则。纯 CMake 项目应保留并跟踪 `CMakeLists.txt`。
 
 ## 交互式命令约定
 交互式选择流程应尽量集中在一个清晰视图中，并支持内联搜索或过滤，避免不必要的多步跳转。用户确认最终结果前，不应写入或修改项目文件。已有配置进入交互模式时应预选，并提供明确视觉提示；确认后应输出变更摘要，清楚说明新增、移除和保持不变的项目，而不是只报告数量。已经明确延期的 UI 细节或 TODO，除非用户再次要求，不要擅自实现。
