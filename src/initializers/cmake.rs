@@ -1,76 +1,53 @@
-use crate::initializers::{FPUType, IdeInitArgs, IdeInitializer};
-use crate::patches::{apply_patch, Patch};
+use crate::patches::{Patch, apply_patch};
 use tracing::info;
 
-pub struct CMake;
+pub fn init(enable_non_intrusive_headers: bool) -> anyhow::Result<()> {
+    info!("Initializing CMake project...");
 
-impl IdeInitializer for CMake {
-    fn name(&self) -> &'static str {
-        "CMake (toolchain: CMake) Compatible with CLion and VSCode (official ST plugin)"
-    }
+    apply_patch(&Patch::Append {
+        file: "CMakeLists.txt".to_string(),
+        after: "# Add sources to executable".to_string(),
+        insert: r#"file(GLOB_RECURSE USER_CODE_SOURCES "UserCode/*.*")"#.to_string(),
+        marker: "USER_CODE_SOURCES".to_string(),
+    })?;
 
-    fn init(&self, args: &IdeInitArgs, _force: bool) -> anyhow::Result<()> {
-        info!("Initializing CMake project...");
+    apply_patch(&Patch::Append {
+        file: "CMakeLists.txt".to_string(),
+        after: "# Add user sources here".to_string(),
+        insert: r#"    ${USER_CODE_SOURCES}"#.to_string(),
+        marker: r#"${USER_CODE_SOURCES}"#.to_string(),
+    })?;
 
-        if args.fpu == FPUType::Hard {
-            apply_patch(&Patch::Append {
-                file: "CMakeLists.txt".to_string(),
-                after: "set(CMAKE_C_EXTENSIONS ON)".to_string(),
-                insert: "\n#Uncomment for hardware floating point\n\
-                     add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)\n\
-                     add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)\n\
-                     add_link_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)\n\n\
-                     add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)\n"
-                    .to_string(),
-                marker: "#Uncomment for hardware floating point".to_string(),
-            })?;
-        } else {
-            apply_patch(&Patch::Append {
-                file: "CMakeLists.txt".to_string(),
-                after: "set(CMAKE_C_EXTENSIONS ON)".to_string(),
-                insert: "\n#Uncomment for software floating point\
-                     \nadd_compile_options(-mfloat-abi=soft)\
-                     \n\
-                     \nadd_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)\n"
-                    .to_string(),
-                marker: "#Uncomment for hardware floating point".to_string(),
-            })?;
-        }
+    apply_patch(&Patch::Append {
+        file: "CMakeLists.txt".to_string(),
+        after: "# Add include paths".to_string(),
+        insert: "include_directories(UserCode)".to_string(),
+        marker: "include_directories(UserCode)".to_string(),
+    })?;
 
-        apply_patch(&Patch::Append {
-            file: "CMakeLists.txt".to_string(),
-            after: "# Add sources to executable".to_string(),
-            insert: r#"file(GLOB_RECURSE SOURCES "UserCode/*.*")"#.to_string(),
-            marker: r#"file(GLOB_RECURSE SOURCES "UserCode/*.*")"#.to_string(),
-        })?;
-
-        apply_patch(&Patch::Append {
-            file: "CMakeLists.txt".to_string(),
-            after: "# Add user sources here".to_string(),
-            insert: r#"    ${SOURCES}"#.to_string(),
-            marker: r#"${SOURCES}"#.to_string(),
-        })?;
-
+    if enable_non_intrusive_headers {
+        info!("Generating CMake non-intrusive header configuration");
         apply_patch(&Patch::Append {
             file: "CMakeLists.txt".to_string(),
             after: "# Add include paths".to_string(),
-            insert: "include_directories(UserCode)".to_string(),
-            marker: "include_directories(UserCode)".to_string(),
+            insert: "\n# 非侵入式引入头文件\ntarget_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -include ${CMAKE_SOURCE_DIR}/UserCode/app/app.h)\n".to_string(),
+            marker: "UserCode/app/app.h".to_string(),
         })?;
-
-        apply_patch(&Patch::Append {
-            file: "CMakeLists.txt".to_string(),
-            after: "list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)".to_string(),
-            insert: "\n# Add dependence from library\
-                     \n# ===================== DEPENDENCIES =====================\
-                     \n# e.g.\
-                     \n#add_subdirectory(library/motor_drivers/UserCode)\
-                     \n\
-                     \n# ======================================================="
-                .to_string(),
-            marker: "# Add dependence from library".to_string(),
-        })?;
-
-        Ok(())
     }
+
+    apply_patch(&Patch::Append {
+        file: "CMakeLists.txt".to_string(),
+        after: "list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)".to_string(),
+        insert: "\n# Add driver module dependencies here\
+                 \n# ===================== DEPENDENCIES =====================\
+                 \n# e.g.\
+                 \n# add_subdirectory(Modules/YourDriver)\
+                 \n# target_link_libraries(${CMAKE_PROJECT_NAME} YourDriver)\
+                 \n\
+                 \n# ======================================================="
+            .to_string(),
+        marker: "# Add driver module dependencies here".to_string(),
+    })?;
+
+    Ok(())
 }

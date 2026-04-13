@@ -1,7 +1,7 @@
 name = "Auto-generated files"
-description = "auto-generated files by ide"
+description = "Ignore CubeMX-generated project files only for STM32CubeIDE + CLion workflow; pure CMake projects should keep CMakeLists.txt tracked"
 enabled = true
 
-[sections.clion]
+[sections.stm32cubeide_clion]
 enabled = false
 files = ["CMakeLists.txt"]

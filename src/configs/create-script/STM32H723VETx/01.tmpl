@@ -3,10 +3,7 @@ set mode RCC HSE-External-Oscillator
 set mode SYS TIM23
 set mode DEBUG Serial_Wire
 project couplefilesbyip 1
-project toolchain "{toolchain}"
-{{ if generate_under_root }}
-project generateunderroot 1
-{{ endif }}
+project toolchain "CMake"
 SetStructure Advanced
 SetCopyLibrary "copy only"
 # 配置 FreeRTOS

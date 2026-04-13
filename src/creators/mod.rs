@@ -14,8 +14,6 @@ pub struct CreateContext<'a> {
     pub project_name: &'a String,
     pub project_dir: &'a String,
     pub ioc_file_path: &'a String,
-    pub toolchain: &'a str,
-    pub generate_under_root: bool,
 }
 
 pub trait STM32ProjectCreator {
