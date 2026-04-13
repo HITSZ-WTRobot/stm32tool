@@ -51,6 +51,8 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
 fn is_available() -> bool {
     Command::new("cpkg")
         .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .status()
         .is_ok_and(|status| status.success())
 }
