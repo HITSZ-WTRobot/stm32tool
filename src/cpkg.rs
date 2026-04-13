@@ -2,13 +2,14 @@ use crate::utils::find_single_ioc_file;
 use anyhow::{Context, anyhow};
 use std::ffi::OsString;
 use std::process::Command;
-use tracing::info;
+use tracing::{info, warn};
 
 pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
     if !is_available() {
-        return Err(anyhow!(
-            "cpkg is not available in PATH; current C++ workspace requires `cpkg init` and `cpkg add --offline utils`"
-        ));
+        warn!(
+            "cpkg is not available in PATH; please add `BasicComponents/utils` to the project manually to satisfy `UserCode/arena.cpp` dependencies."
+        );
+        return Ok(());
     }
 
     let ioc_file = find_single_ioc_file()?;
