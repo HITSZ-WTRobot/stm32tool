@@ -1,8 +1,37 @@
 use crate::patches::{Patch, apply_patch};
 use tracing::info;
 
-pub fn init(enable_non_intrusive_headers: bool) -> anyhow::Result<()> {
+const CMAKE_C_BLOCK: &str = r#"set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)"#;
+
+const CMAKE_C_AND_CXX_BLOCK: &str = r#"set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# disable cxa_atexit to avoid global/static destructor registration
+# suitable for bare-metal targets without process exit
+add_compile_options(
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
+)"#;
+
+pub fn init() -> anyhow::Result<()> {
     info!("Initializing CMake project...");
+
+    apply_patch(&Patch::Replace {
+        file: "CMakeLists.txt".to_string(),
+        find: CMAKE_C_BLOCK.to_string(),
+        insert: CMAKE_C_AND_CXX_BLOCK.to_string(),
+    })?;
+
+    apply_patch(&Patch::Replace {
+        file: "CMakeLists.txt".to_string(),
+        find: "enable_language(C ASM)".to_string(),
+        insert: "enable_language(C CXX ASM)".to_string(),
+    })?;
 
     apply_patch(&Patch::Append {
         file: "CMakeLists.txt".to_string(),
@@ -25,20 +54,14 @@ pub fn init(enable_non_intrusive_headers: bool) -> anyhow::Result<()> {
         marker: "include_directories(UserCode)".to_string(),
     })?;
 
-    if enable_non_intrusive_headers {
-        info!("Generating CMake non-intrusive header configuration");
-        apply_patch(&Patch::Append {
-            file: "CMakeLists.txt".to_string(),
-            after: "# Add include paths".to_string(),
-            insert: "\n# 非侵入式引入头文件\ntarget_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -include ${CMAKE_SOURCE_DIR}/UserCode/app/app.h)\n".to_string(),
-            marker: "UserCode/app/app.h".to_string(),
-        })?;
-    }
-
     apply_patch(&Patch::Append {
         file: "CMakeLists.txt".to_string(),
         after: "list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)".to_string(),
-        insert: "\n# Add driver module dependencies here\
+        insert: "\ninclude(cmake/wtr_modules.cmake)\
+                 \n\
+                 \nwtr_link_packages(${CMAKE_PROJECT_NAME})\
+                 \n\
+                 \n# Add driver module dependencies here\
                  \n# ===================== DEPENDENCIES =====================\
                  \n# e.g.\
                  \n# add_subdirectory(Modules/YourDriver)\
@@ -46,7 +69,7 @@ pub fn init(enable_non_intrusive_headers: bool) -> anyhow::Result<()> {
                  \n\
                  \n# ======================================================="
             .to_string(),
-        marker: "# Add driver module dependencies here".to_string(),
+        marker: "wtr_link_packages(${CMAKE_PROJECT_NAME})".to_string(),
     })?;
 
     Ok(())

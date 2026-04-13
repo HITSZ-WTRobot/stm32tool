@@ -1,11 +1,12 @@
+use crate::utils::find_single_ioc_file;
 use anyhow::Result;
 use rand::distr::Alphanumeric;
 use rand::{Rng, rng};
+use std::env;
 use std::fmt::Write;
 use std::fs::{File, remove_file};
 use std::io::Write as IoWrite;
 use std::process::{Command, Stdio};
-use std::{env, fs};
 use tracing::{error, warn};
 
 fn generate_random_string(length: usize) -> String {
@@ -16,33 +17,14 @@ fn generate_random_string(length: usize) -> String {
         .collect()
 }
 
-fn get_ioc_files() -> Vec<String> {
-    let mut ioc_files: Vec<String> = Vec::new();
-    let current_dir = std::env::current_dir().expect("Failed to get current directory");
-    if let Ok(entries) = fs::read_dir(current_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if let Some(extension) = path.extension()
-                && extension == "ioc"
-            {
-                ioc_files.push(path.to_str().unwrap().to_string());
-            }
-        }
-    }
-    ioc_files
-}
-
 const CMAKE_TOOLCHAIN: &str = "CMake";
 
 pub fn generate_code() -> Result<()> {
-    let ioc_files = get_ioc_files();
-    if ioc_files.len() != 1 {
-        warn!("No ioc file is provided or multiple ioc files are provided.");
-        return Err(anyhow::anyhow!(
-            "No ioc file is provided or multiple ioc files are provided."
-        ));
-    }
-    let ioc_file = ioc_files.first().unwrap();
+    let ioc_file = find_single_ioc_file().map_err(|error| {
+        warn!("{error}");
+        error
+    })?;
+    let ioc_file = ioc_file.to_string_lossy().to_string();
     let mut script = String::new();
     writeln!(script, "config load {ioc_file}")?;
     writeln!(script, "project toolchain \"{CMAKE_TOOLCHAIN}\"")?;

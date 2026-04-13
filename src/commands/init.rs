@@ -1,4 +1,5 @@
 use crate::cli::InitArgs;
+use crate::cpkg;
 use crate::gitignore::generate_gitignore;
 use crate::initializers;
 use crate::render::render_file;
@@ -16,16 +17,7 @@ struct InitContext {
     year: String,
 }
 
-const USER_CODE_DIRECTORIES: [&str; 8] = [
-    "UserCode/bsp",
-    "UserCode/drivers",
-    "UserCode/third_party",
-    "UserCode/libs",
-    "UserCode/interfaces",
-    "UserCode/controllers",
-    "UserCode/app",
-    "Modules",
-];
+const USER_CODE_DIRECTORIES: [&str; 1] = ["UserCode"];
 
 pub fn run(args: InitArgs) -> anyhow::Result<()> {
     let ctx = init_context();
@@ -43,7 +35,8 @@ pub fn run(args: InitArgs) -> anyhow::Result<()> {
         generate_user_code_layout(&ctx, args.force)?;
     }
 
-    initializers::init_cmake(!args.skip_non_intrusive_headers && !args.skip_generate_user_code)?;
+    initializers::init_cmake()?;
+    cpkg::bootstrap_project(args.force)?;
 
     create_initial_commit();
 
@@ -90,14 +83,8 @@ fn generate_user_code_layout(ctx: &InitContext, force: bool) -> anyhow::Result<(
         info!("Created dir {}", dir);
     }
 
-    render_file("UserCode/app/app.h", templates::APP_H, ctx, force)?;
-    render_file("UserCode/app/app.c", templates::APP_C, ctx, force)?;
-    render_file(
-        "UserCode/README.md",
-        templates::USER_CODE_README,
-        ctx,
-        force,
-    )?;
+    render_file("UserCode/app.cpp", templates::APP_CPP, ctx, force)?;
+    render_file("UserCode/arena.cpp", templates::ARENA_CPP, ctx, force)?;
 
     Ok(())
 }

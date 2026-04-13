@@ -13,6 +13,12 @@
 - `src/templates/`：项目初始化时写入目标工程的文本模板。
 - `src/configs.rs` 与 `src/templates.rs`：统一管理内置资产入口，业务代码不再直接引用深层相对路径。
 
+## 生成结果
+
+- 默认生成 C++17 的 STM32CubeMX CMake 工作区，并启用 `C CXX ASM` 语言。
+- `UserCode/` 默认只生成 `app.cpp` 与 `arena.cpp` 两个源文件。
+- 初始化时会调用 `cpkg init` 与 `cpkg add --offline utils`，并在根 `CMakeLists.txt` 中接入 `cmake/wtr_modules.cmake`。
+
 ## Help
 
 ```

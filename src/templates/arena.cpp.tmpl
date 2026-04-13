@@ -1,0 +1,38 @@
+#include "static_arena.hpp"
+#include <cstdio>
+
+// 1. 定义一个足够大的静态分配器（例如 64KB）
+// 放在静态区 (.bss)
+static StaticArena<64 * 1024> g_boot_arena;
+
+// 2. 覆盖全局 operator new
+void* operator new(const std::size_t size)
+\{
+    void* ptr = g_boot_arena.allocate(size);
+    if (!ptr)
+    \{
+        // 嵌入式调试：打印错误并死循环
+        // printf("Error: Global Arena Out of Memory! Request: %zu bytes\n", size);
+        while (true)
+        \{ /* 触发看门狗或挂起 */
+        }
+    }
+    return ptr;
+}
+
+// 必须实现对应的 delete (即便它什么都不做)
+void operator delete(void* p) noexcept
+\{
+    // 线性分配器无法回收单块内存，故此处留空
+}
+
+// 数组版本
+void* operator new[](const std::size_t size)
+\{
+    return ::operator new(size);
+}
+
+void operator delete[](void* p) noexcept
+\{
+    ::operator delete(p);
+}

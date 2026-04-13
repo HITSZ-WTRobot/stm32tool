@@ -41,23 +41,13 @@ pub struct CreateArgs {
 
 #[derive(Parser, Debug)]
 pub struct InitArgs {
-    /// 跳过生成 UserCode 目录结构
+    /// 跳过生成 UserCode C++ 源文件
     #[arg(long, default_value_t = false)]
     pub skip_generate_user_code: bool,
 
     /// 跳过生成 .clang-format
     #[arg(long, default_value_t = false)]
     pub skip_generate_clang_format: bool,
-
-    /// 跳过非侵入式头文件配置
-    ///
-    /// 只有当 skip_generate_user_code 未启用时生效
-    #[arg(
-        long,
-        requires_if("false", "skip_generate_user_code"),
-        default_value_t = false
-    )]
-    pub skip_non_intrusive_headers: bool,
 
     /// 强制重新生成
     #[arg(long)]

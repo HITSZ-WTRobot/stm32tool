@@ -1,6 +1,7 @@
 mod cli;
 mod commands;
 mod configs;
+mod cpkg;
 mod creators;
 mod gitignore;
 mod initializers;
