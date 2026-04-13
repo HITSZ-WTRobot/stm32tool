@@ -1,7 +1,7 @@
 use crate::utils::find_single_ioc_file;
 use anyhow::{Context, anyhow};
 use std::ffi::OsString;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use tracing::{info, warn};
 
 pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
@@ -34,7 +34,7 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
         .arg(&project_name)
         .arg("--ioc")
         .arg(&ioc_arg);
-    run_command(init_command, "cpkg init")?;
+    run_command(init_command, "cpkg init", false)?;
 
     info!("Adding cpkg dependency utils in offline mode");
     let mut add_command = Command::new("cpkg");
@@ -42,6 +42,7 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
     run_command(
         add_command,
         "cpkg add --offline utils（若本地或缓存索引不可用，则不支持离线完成）",
+        true,
     )?;
 
     Ok(())
@@ -54,7 +55,11 @@ fn is_available() -> bool {
         .is_ok_and(|status| status.success())
 }
 
-fn run_command(mut command: Command, label: &str) -> anyhow::Result<()> {
+fn run_command(mut command: Command, label: &str, forward_output: bool) -> anyhow::Result<()> {
+    if !forward_output {
+        command.stdout(Stdio::null()).stderr(Stdio::null());
+    }
+
     let status = command
         .status()
         .with_context(|| format!("Failed to execute {label}"))?;
