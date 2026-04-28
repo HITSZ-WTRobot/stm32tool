@@ -1,0 +1,4 @@
+interface:
+  display_name: "stm32tool"
+  short_description: "Operate the compiled stm32tool CLI"
+  default_prompt: "Use $stm32tool to create, initialize, regenerate, or clean an STM32CubeMX CMake project with the compiled stm32tool CLI."
