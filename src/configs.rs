@@ -10,6 +10,11 @@ pub mod cubemx_scripts {
             include_str!("configs/stm32cubemx/scripts/stm32f407vetx/generate.tmpl");
     }
 
+    pub mod stm32g474cbtx {
+        pub const BOOTSTRAP: &str =
+            include_str!("configs/stm32cubemx/scripts/stm32g474cbtx/bootstrap.tmpl");
+    }
+
     pub mod stm32h723vetx {
         pub const BOOTSTRAP: &str =
             include_str!("configs/stm32cubemx/scripts/stm32h723vetx/bootstrap.tmpl");
@@ -33,6 +38,8 @@ mod tests {
     fn embedded_cubemx_scripts_are_available() {
         assert!(cubemx_scripts::stm32f407vetx::BOOTSTRAP.contains("project toolchain"));
         assert!(cubemx_scripts::stm32f407vetx::GENERATE.contains("project generate"));
+        assert!(cubemx_scripts::stm32g474cbtx::BOOTSTRAP.contains("load STM32G474CBTx"));
+        assert!(cubemx_scripts::stm32g474cbtx::BOOTSTRAP.contains("project generate"));
         assert!(cubemx_scripts::stm32h723vetx::BOOTSTRAP.contains("mmt load pre-config default"));
         assert!(cubemx_scripts::stm32h723vetx::DEFAULT_MEMORY_MAP.contains("MMTAppRegionsCount"));
         assert!(cubemx_scripts::stm32h723vetx::GENERATE.contains("project generate"));

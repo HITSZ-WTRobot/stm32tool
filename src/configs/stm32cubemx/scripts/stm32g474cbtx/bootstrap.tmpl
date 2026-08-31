@@ -1,0 +1,29 @@
+load STM32G474CBTx
+# 配置时钟为外部高速晶振
+set mode RCC "HSE-External-Oscillator"
+set mode SYS "Serial Wire"
+# 用 TIM7 作为系统时钟
+set mode SYS "TIM7"
+#
+project couplefilesbyip 1
+project toolchain "CMake"
+SetStructure Advanced
+SetCopyLibrary "copy only"
+# 配置 FreeRTOS
+set mode FreeRTOS CMSIS_V2
+set ip parameters FreeRTOS configENABLE_FPU 1
+set ip parameters FreeRTOS Tasks01 "defaultTask,16,128,StartDefaultTask,As weak,NULL,Dynamic,NULL,NULL;init,55,128,Init,As external,NULL,Dynamic,NULL,NULL"
+
+clock set PLLSource 1
+clock set PLLM 2
+clock set PLLN 85
+clock set SysClkSource 2
+clock set APB1CLKDivider 1
+clock set APB2CLKDivider 1
+
+config saveas {ioc_file_path}
+
+SetCopyLibrary "copy only"
+project generate
+
+exit

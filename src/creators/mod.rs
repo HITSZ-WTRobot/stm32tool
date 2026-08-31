@@ -1,4 +1,5 @@
 use crate::creators::stm32f407vetx::STM32F407VETx;
+use crate::creators::stm32g474cbtx::STM32G474CBTx;
 use crate::creators::stm32h723vetx::STM32H723VETx;
 use crate::render::render_string;
 use crate::stm32cubemx::run_script;
@@ -8,6 +9,7 @@ use serde::Serialize;
 use tracing::{debug, info};
 
 mod stm32f407vetx;
+mod stm32g474cbtx;
 mod stm32h723vetx;
 
 #[derive(Debug, Parser)]
@@ -26,7 +28,11 @@ pub trait STM32ProjectCreator {
 }
 
 pub fn all() -> Vec<Box<dyn STM32ProjectCreator>> {
-    vec![Box::new(STM32F407VETx), Box::new(STM32H723VETx)]
+    vec![
+        Box::new(STM32F407VETx),
+        Box::new(STM32G474CBTx),
+        Box::new(STM32H723VETx),
+    ]
 }
 
 pub fn run_rendered_script(
