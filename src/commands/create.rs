@@ -5,10 +5,13 @@ use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Select};
 use std::path::Path;
 use std::{env, fs};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 pub fn run(args: CreateArgs) -> anyhow::Result<()> {
     debug!(?args, "Running create command");
+    if args.run_init {
+        warn!("--run-init 已默认启用，无需再指定；如需跳过初始化请使用 --skip-init");
+    }
     let path = Path::new(&args.project_name);
     if path.exists() {
         debug!(path = %path.display(), "Project directory already exists");
@@ -58,7 +61,9 @@ pub fn run(args: CreateArgs) -> anyhow::Result<()> {
     info!("Using toolchain CMake");
     mcus[chosen].run(&ctx)?;
 
-    if args.run_init {
+    if args.skip_init {
+        debug!("Skipping init process because --skip-init was provided");
+    } else {
         info!("Running init process");
         debug!(?args.init_args, "Forwarding init arguments from create command");
         super::init::run(args.init_args)?;

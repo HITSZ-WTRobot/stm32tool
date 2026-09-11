@@ -38,8 +38,14 @@ pub struct CreateArgs {
     pub project_name: String,
 
     /// 是否在创建后立即初始化项目
+    ///
+    /// 该行为已默认启用，此参数仅为兼容旧命令保留；指定后工具会提示该行为已默认开启
     #[arg(long)]
     pub run_init: bool,
+
+    /// 创建后跳过初始化
+    #[arg(long, conflicts_with = "run_init")]
+    pub skip_init: bool,
 
     /// 使用 init 的参数
     #[command(flatten)]
@@ -90,5 +96,48 @@ mod tests {
 
         assert!(cli.verbose);
         assert!(matches!(cli.command, Commands::Purge));
+    }
+
+    fn create_args(extra: &[&str]) -> CreateArgs {
+        let mut argv = vec!["stm32tool", "create", "demo"];
+        argv.extend_from_slice(extra);
+        let cli = Cli::try_parse_from(argv).unwrap();
+
+        match cli.command {
+            Commands::Create(args) => args,
+            other => panic!("expected create command, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn create_runs_init_by_default() {
+        let args = create_args(&[]);
+
+        assert!(!args.run_init);
+        assert!(!args.skip_init);
+    }
+
+    #[test]
+    fn create_accepts_legacy_run_init() {
+        let args = create_args(&["--run-init"]);
+
+        assert!(args.run_init);
+        assert!(!args.skip_init);
+    }
+
+    #[test]
+    fn create_accepts_skip_init() {
+        let args = create_args(&["--skip-init"]);
+
+        assert!(!args.run_init);
+        assert!(args.skip_init);
+    }
+
+    #[test]
+    fn create_rejects_run_init_with_skip_init() {
+        assert!(
+            Cli::try_parse_from(["stm32tool", "create", "demo", "--run-init", "--skip-init"])
+                .is_err()
+        );
     }
 }

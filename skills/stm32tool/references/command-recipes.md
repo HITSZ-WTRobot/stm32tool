@@ -11,9 +11,10 @@
 
 ## Create A New Project
 
-- Use `stm32tool create <PROJECT_NAME>` for a brand-new project directory.
-- Use `stm32tool create <PROJECT_NAME> --run-init` to create the project and immediately perform initialization.
-- If you also pass `--skip-generate-user-code`, `--skip-generate-clang-format`, or `--force`, those flags only apply to the forwarded `init` step.
+- Use `stm32tool create <PROJECT_NAME>` for a brand-new project directory; it creates the directory and immediately performs initialization.
+- Add `--skip-init` to create the project skeleton only, without initialization.
+- `--run-init` still parses for backward compatibility but only logs a warning that initialization already runs by default.
+- If you also pass `--skip-generate-user-code`, `--skip-generate-clang-format`, or `--force`, those flags apply to the `init` step that runs by default; they are ignored when `--skip-init` is present.
 
 ## Initialize An Existing Project
 
@@ -42,7 +43,7 @@
 
 ## Expected Side Effects
 
-- `create`: creates the project directory, writes the `.ioc`, and generates the selected STM32CubeMX project skeleton.
+- `create`: creates the project directory, writes the `.ioc`, generates the selected STM32CubeMX project skeleton, and then runs the `init` side effects below unless `--skip-init` is given.
 - `init`: initializes Git, writes `.gitignore`, optionally writes `.clang-format`, optionally writes `UserCode/app.cpp` and `UserCode/arena.cpp`, patches `CMakeLists.txt`, and optionally bootstraps `cpkg`.
 - `generate`: reruns STM32CubeMX code generation with the CMake toolchain.
 - `purge`: deletes ignored files and directories from the repository.

@@ -20,8 +20,10 @@ description: Use when an agent needs to operate the compiled `stm32tool` CLI to 
 
 - Use `stm32tool create <PROJECT_NAME>` when the project directory does not exist yet.
 - Expect an interactive MCU selection prompt. Use a TTY when driving this command from an agent session.
-- Add `--run-init` to chain `init` immediately after project creation.
-- Remember that `--skip-generate-user-code`, `--skip-generate-clang-format`, and `--force` on `create` only affect the forwarded `init` step when `--run-init` is present.
+- `create` runs `init` right after project creation by default.
+- Add `--skip-init` when only the project skeleton is wanted and `init` must not run.
+- `--run-init` is kept only for compatibility with older scripts; passing it logs a warning that the behavior is already the default, and behaves the same as omitting it.
+- `--skip-generate-user-code`, `--skip-generate-clang-format`, and `--force` on `create` apply to the `init` step that runs by default; `--skip-init` makes all of them ineffective.
 
 ### Initialize An Existing Project
 
