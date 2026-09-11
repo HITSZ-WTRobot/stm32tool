@@ -170,8 +170,9 @@ mod tests {
     fn loads_embedded_gitignore_configs() {
         let configs = load_gitignore_configs(None).expect("load embedded configs");
 
-        assert_eq!(configs.len(), 4);
+        assert_eq!(configs.len(), 5);
         assert!(configs.iter().any(|config| config.name == "STM32CubeMX"));
+        assert!(configs.iter().any(|config| config.name == "cpkg"));
         assert!(
             configs
                 .iter()

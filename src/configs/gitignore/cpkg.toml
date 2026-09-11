@@ -1,0 +1,7 @@
+name = "cpkg"
+description = "cpkg generated integration files"
+enabled = true
+
+ignore = [
+    "cmake/wtr_modules.cmake"
+]

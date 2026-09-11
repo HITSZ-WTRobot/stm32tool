@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn embedded_gitignore_configs_are_available() {
-        assert_eq!(DEFAULT_GITIGNORE_CONFIG_DIR.files().count(), 4);
+        assert_eq!(DEFAULT_GITIGNORE_CONFIG_DIR.files().count(), 5);
     }
 
     #[test]
