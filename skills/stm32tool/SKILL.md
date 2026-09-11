@@ -47,7 +47,7 @@ description: Use when an agent needs to operate the compiled `stm32tool` CLI to 
 
 - Add `-v` to any command when you need external command stdout and stderr.
 - If `cpkg` is missing, explain that initialization still succeeds but `BasicComponents/utils` must be added manually for `UserCode/arena.cpp`.
-- If `cpkg` is available, explain that `cpkg sync` is still required after the offline bootstrap step.
+- If cpkg is available, note that init asks whether to run cpkg sync; when the user declines or stderr is not a terminal, tell them to run cpkg sync manually.
 - If `generate` or `init` fails because `.ioc` discovery is ambiguous, report that zero or multiple `.ioc` files are present and resolve that first.
 
 ## Report Clearly

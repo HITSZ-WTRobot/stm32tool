@@ -52,6 +52,17 @@ pub fn command_status(mut command: Command, label: &str) -> std::io::Result<Exit
     command.stdout(Stdio::null()).stderr(Stdio::null()).status()
 }
 
+/// Runs a command with stdout/stderr inherited, so long-running progress stays visible.
+pub fn command_status_live(mut command: Command, label: &str) -> std::io::Result<ExitStatus> {
+    debug!("Running command: {label}");
+    let status = command.status();
+    match &status {
+        Ok(status) => debug!("Command finished: {label} ({status})"),
+        Err(error) => debug!("Command failed to start: {label} ({error})"),
+    }
+    status
+}
+
 pub fn command_output(mut command: Command, label: &str) -> std::io::Result<Output> {
     debug!("Running command: {label}");
 

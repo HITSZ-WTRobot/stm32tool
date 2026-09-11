@@ -23,5 +23,5 @@
 
 - `git` is expected for repository initialization and the initial commit attempt performed by `init`.
 - `cpkg` is optional:
-  - When present, `init` runs `cpkg init` and `cpkg add --offline utils`, then tells the user to run `cpkg sync`.
+  - When present, `init` runs `cpkg init` and `cpkg add --offline utils`, then asks whether to run `cpkg sync` (the prompt is skipped when stderr is not a terminal).
   - When absent, `init` still succeeds, but `BasicComponents/utils` must be integrated manually for `UserCode/arena.cpp`.
