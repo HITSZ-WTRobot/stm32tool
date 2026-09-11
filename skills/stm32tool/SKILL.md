@@ -1,6 +1,6 @@
 ---
 name: stm32tool
-description: Use when an agent needs to operate the compiled `stm32tool` CLI to create, initialize, regenerate, or clean STM32CubeMX CMake projects. Covers command selection for `create`, `init`, `generate`, and `purge`; prerequisite checks such as `STM32CubeMX_PATH` or `stm32cubemx`; optional `cpkg` bootstrap behavior; and safe handling of `.ioc`, `UserCode/`, and generated files. Do not use this skill for modifying the `stm32tool` source repository itself.
+description: Use when an agent needs to operate the compiled `stm32tool` CLI to create, initialize, regenerate, clean STM32CubeMX CMake projects, or update the CLI itself. Covers command selection for `create`, `init`, `generate`, `purge`, and `update`; prerequisite checks such as `STM32CubeMX_PATH` or `stm32cubemx`; optional `cpkg` bootstrap behavior; and safe handling of `.ioc`, `UserCode/`, and generated files. Do not use this skill for modifying the `stm32tool` source repository itself.
 ---
 
 # Use stm32tool
@@ -43,11 +43,19 @@ description: Use when an agent needs to operate the compiled `stm32tool` CLI to 
 - Use `stm32tool purge` carefully. It runs `git clean -fdX`, which removes ignored files and directories such as build output.
 - Confirm the user really wants cleanup before invoking `purge` in a repository with local build artifacts.
 
+### Update The Tool
+
+- Use `stm32tool update --check` to report whether a newer GitHub Release exists without downloading.
+- Use `stm32tool update` to confirm interactively, or `stm32tool update --yes` in non-interactive sessions.
+- Expect `update` to refuse when the running binary lives in a Cargo `target/` directory; tell the user to install a release build instead.
+- Expect `update` to report "up to date" without downloading when the local build is newer than the newest published release.
+
 ### Troubleshoot
 
 - Add `-v` to any command when you need external command stdout and stderr.
 - If `cpkg` is missing, explain that initialization still succeeds but `BasicComponents/utils` must be added manually for `UserCode/arena.cpp`.
 - If cpkg is available, note that init asks whether to run cpkg sync; when the user declines or stderr is not a terminal, tell them to run cpkg sync manually.
+- If `update` fails with a checksum or missing-digest error, tell the user the release asset could not be verified and to install manually rather than retrying blindly.
 - If `generate` or `init` fails because `.ioc` discovery is ambiguous, report that zero or multiple `.ioc` files are present and resolve that first.
 
 ## Report Clearly

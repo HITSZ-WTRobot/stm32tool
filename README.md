@@ -32,6 +32,7 @@ Commands:
   create    创建新的 STM32 CMake 项目
   purge     清除生成的代码和构建文件
   generate  使用 STM32CubeMX 生成 CMake 代码
+  update    更新 stm32tool 到最新版本
   help      Print this message or the help of the given subcommand(s)
 
 Options:

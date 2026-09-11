@@ -27,6 +27,9 @@ pub enum Commands {
 
     /// 使用 STM32CubeMX 生成 CMake 代码
     Generate,
+
+    /// 更新 stm32tool 到最新版本
+    Update(UpdateArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -56,6 +59,17 @@ pub struct InitArgs {
     /// 强制重新生成
     #[arg(long)]
     pub force: bool,
+}
+
+#[derive(Parser, Debug)]
+pub struct UpdateArgs {
+    /// 跳过确认，直接下载并替换当前可执行文件
+    #[arg(long, default_value_t = false)]
+    pub yes: bool,
+
+    /// 只检查是否有新版本，不下载
+    #[arg(long, default_value_t = false)]
+    pub check: bool,
 }
 
 #[cfg(test)]

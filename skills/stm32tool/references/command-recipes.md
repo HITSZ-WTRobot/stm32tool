@@ -7,6 +7,7 @@
 - `stm32tool create --help`
 - `stm32tool generate --help`
 - `stm32tool purge --help`
+- `stm32tool update --help`
 
 ## Create A New Project
 
@@ -33,9 +34,16 @@
 - Use `stm32tool purge` only when the user wants to remove ignored files and directories.
 - Remember that `purge` maps to `git clean -fdX`.
 
+## Update The Tool
+
+- Use `stm32tool update --check` when the user only wants to know whether a newer release exists.
+- Use `stm32tool update --yes` in agent sessions, because the interactive prompt requires a TTY.
+- Only Windows and Linux release assets exist; other platforms must update manually.
+
 ## Expected Side Effects
 
 - `create`: creates the project directory, writes the `.ioc`, and generates the selected STM32CubeMX project skeleton.
 - `init`: initializes Git, writes `.gitignore`, optionally writes `.clang-format`, optionally writes `UserCode/app.cpp` and `UserCode/arena.cpp`, patches `CMakeLists.txt`, and optionally bootstraps `cpkg`.
 - `generate`: reruns STM32CubeMX code generation with the CMake toolchain.
 - `purge`: deletes ignored files and directories from the repository.
+- `update`: replaces the running `stm32tool` executable with the newest published release for the current platform, after verifying its sha256 digest. It refuses to touch binaries under a Cargo `target/` directory.

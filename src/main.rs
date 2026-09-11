@@ -9,6 +9,7 @@ mod patches;
 mod render;
 mod stm32cubemx;
 mod templates;
+mod update;
 mod utils;
 
 use crate::cli::Cli;
