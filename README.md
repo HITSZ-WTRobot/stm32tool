@@ -16,9 +16,9 @@
 ## 生成结果
 
 - 默认生成 C++17 的 STM32CubeMX CMake 工作区，并启用 `C CXX ASM` 语言。
-- `UserCode/` 默认只生成 `app.cpp` 与 `arena.cpp` 两个源文件。
-- 若环境中存在 `cpkg`，初始化时会静默调用 `cpkg init` 与 `cpkg add --offline utils`，并在根 `CMakeLists.txt` 中接入 `cmake/wtr_modules.cmake`；随后会询问是否立即执行 `cpkg sync`，在非交互环境（stderr 未连接终端）下跳过询问并提示手动执行。
-- 若环境中缺少 `cpkg`，工具会继续初始化，但需要手动将 `BasicComponents/utils` 加入项目，以满足 `UserCode/arena.cpp` 的依赖。
+- `UserCode/` 默认只生成 `app.cpp` 一个源文件。
+- 工具内部维护初始依赖表，默认依赖为 `memory::StaticObject`；若环境中存在 `cpkg`，初始化时会静默调用 `cpkg init` 与 `cpkg add --offline memory::StaticObject`，并在根 `CMakeLists.txt` 中接入 `cmake/wtr_modules.cmake`；随后会询问是否立即执行 `cpkg sync`，在非交互环境（stderr 未连接终端）下跳过询问并提示手动执行。
+- 若环境中缺少 `cpkg`，工具会继续初始化，但需要手动将初始依赖表中的包（默认 `memory::StaticObject`）加入项目。
 
 ## Help
 

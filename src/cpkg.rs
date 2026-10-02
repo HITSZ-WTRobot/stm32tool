@@ -9,10 +9,18 @@ use tracing::{debug, info, warn};
 const SYNC_HINT: &str =
     "Please run `cpkg sync` manually to finish project dependency synchronization.";
 
+/// Direct dependencies every freshly initialized project starts with.
+///
+/// `memory::StaticObject` replaces the hand-written `UserCode/arena.cpp`
+/// bootstrap: new projects get the allocator package instead of a global
+/// `operator new` override copied into user code.
+const INITIAL_DEPENDENCIES: [&str; 1] = ["memory::StaticObject"];
+
 pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
     if !is_available() {
         warn!(
-            "cpkg is not available in PATH; please add `BasicComponents/utils` to the project manually to satisfy `UserCode/arena.cpp` dependencies."
+            "cpkg is not available in PATH; please add the initial dependencies to the project manually: {}.",
+            INITIAL_DEPENDENCIES.join(", ")
         );
         return Ok(());
     }
@@ -47,17 +55,33 @@ pub fn bootstrap_project(force: bool) -> anyhow::Result<()> {
         .arg(&ioc_arg);
     run_command(init_command, "cpkg init")?;
 
-    info!("Adding cpkg dependency utils in offline mode");
-    let mut add_command = Command::new("cpkg");
-    add_command.args(["add", "--offline", "utils"]);
-    run_command(
-        add_command,
-        "cpkg add --offline utils（若本地或缓存索引不可用，则不支持离线完成）",
-    )?;
+    add_initial_dependencies()?;
 
     offer_sync();
 
     Ok(())
+}
+
+/// Records [`INITIAL_DEPENDENCIES`] without network access.
+///
+/// Offline mode still updates `wtrproject.toml`; a later online `cpkg sync`
+/// fetches anything that is not already cached.
+fn add_initial_dependencies() -> anyhow::Result<()> {
+    let dependencies = INITIAL_DEPENDENCIES.join(" ");
+    info!("Adding initial cpkg dependencies in offline mode: {dependencies}");
+    run_command(
+        initial_dependencies_command(),
+        &format!("cpkg add --offline {dependencies}（若本地或缓存索引不可用，则不支持离线完成）"),
+    )
+}
+
+fn initial_dependencies_command() -> Command {
+    let mut command = Command::new("cpkg");
+    command
+        .arg("add")
+        .arg("--offline")
+        .args(INITIAL_DEPENDENCIES);
+    command
 }
 
 /// Asks whether to run `cpkg sync` right away.
@@ -114,4 +138,23 @@ fn run_command(command: Command, label: &str) -> anyhow::Result<()> {
     }
 
     Err(anyhow!("{label} failed with status: {status}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{INITIAL_DEPENDENCIES, initial_dependencies_command};
+
+    #[test]
+    fn initial_dependencies_are_added_offline() {
+        assert!(INITIAL_DEPENDENCIES.contains(&"memory::StaticObject"));
+
+        let args: Vec<String> = initial_dependencies_command()
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect();
+
+        assert_eq!(args[0], "add");
+        assert_eq!(args[1], "--offline");
+        assert_eq!(&args[2..], INITIAL_DEPENDENCIES);
+    }
 }

@@ -85,7 +85,6 @@ fn generate_user_code_layout(ctx: &InitContext, force: bool) -> anyhow::Result<(
     }
 
     render_file("UserCode/app.cpp", templates::APP_CPP, ctx, force)?;
-    render_file("UserCode/arena.cpp", templates::ARENA_CPP, ctx, force)?;
 
     Ok(())
 }

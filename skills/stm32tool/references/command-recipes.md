@@ -44,7 +44,7 @@
 ## Expected Side Effects
 
 - `create`: creates the project directory, writes the `.ioc`, generates the selected STM32CubeMX project skeleton, and then runs the `init` side effects below unless `--skip-init` is given.
-- `init`: initializes Git, writes `.gitignore`, optionally writes `.clang-format`, optionally writes `UserCode/app.cpp` and `UserCode/arena.cpp`, patches `CMakeLists.txt`, and optionally bootstraps `cpkg`.
+- `init`: initializes Git, writes `.gitignore`, optionally writes `.clang-format`, optionally writes `UserCode/app.cpp`, patches `CMakeLists.txt`, and optionally bootstraps `cpkg` with the tool's initial dependency table (default `memory::StaticObject`).
 - `generate`: reruns STM32CubeMX code generation with the CMake toolchain.
 - `purge`: deletes ignored files and directories from the repository.
 - `update`: replaces the running `stm32tool` executable with the newest published release for the current platform, after verifying its sha256 digest. It refuses to touch binaries under a Cargo `target/` directory.
