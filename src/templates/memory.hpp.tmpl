@@ -1,0 +1,31 @@
+/**
+ * @file    memory.hpp
+ * @brief   使用 STM32H723xx_FLASH.ld 中已有的内存段放置变量。
+ *
+ * 使用示例（全局变量）：
+ * @code
+ * #include <stdint.h>
+ * #include "memory.hpp"
+ *
+ * MEM_RAM_D2 uint8_t buffer[256];
+ * @endcode
+ *
+ * 使用约定：
+ * - 仅用于全局变量或 static 变量，不能用于自动局部变量或非静态成员。
+ * - 宏只指定 section，不改变类型、对齐或生命周期。
+ * - 当前启动代码不复制或清零这些专用段；首次读取前必须显式写入，
+ *   不能依赖静态零初始化或声明中的初始值（包括 = \{}）。
+ * - DMA 可达性、Cache 一致性及 BKUPRAM 供电配置由调用方负责。
+ * - 未标注的变量仍按默认链接规则放置；当前 .data/.bss 位于 DTCMRAM。
+ */
+#pragma once
+
+#define MEM_DTCMRAM __attribute__((section(".DTCMRAM_Section")))
+#define MEM_RAM_AXI __attribute__((section(".RAM_AXI_Section")))
+#define MEM_RAM_D2  __attribute__((section(".RAM_D2_Section")))
+#define MEM_RAM_D3  __attribute__((section(".RAM_D3_Section")))
+#define MEM_ITCMRAM __attribute__((section(".ITCMRAM_Section")))
+#define MEM_BKUPRAM __attribute__((section(".BKUPRAM_Section")))
+
+#define MEM_DMA     MEM_RAM_AXI
+#define MEM_DEFAULT MEM_DTCMRAM

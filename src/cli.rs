@@ -54,7 +54,7 @@ pub struct CreateArgs {
 
 #[derive(Parser, Debug)]
 pub struct InitArgs {
-    /// 跳过生成 UserCode C++ 源文件
+    /// 跳过生成 UserCode/app.cpp 和 STM32H723VET6 的 memory.hpp
     #[arg(long, default_value_t = false)]
     pub skip_generate_user_code: bool,
 

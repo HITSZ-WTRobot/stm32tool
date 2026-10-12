@@ -1,5 +1,6 @@
 pub const APP_CPP: &str = include_str!("templates/app.cpp.tmpl");
 pub const CLANG_FORMAT: &str = include_str!("templates/clang-format.tmpl");
+pub const MEMORY_HPP: &str = include_str!("templates/memory.hpp.tmpl");
 
 #[cfg(test)]
 mod tests {
