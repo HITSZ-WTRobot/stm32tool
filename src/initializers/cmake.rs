@@ -18,6 +18,12 @@ add_compile_options(
         $<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
 )"#;
 
+/// CubeMX generates the toolchain file with `-O0` debug builds.
+///
+/// Debug builds must still be optimized for the target to behave like release
+/// code; keep `-g3` so debug info stays available.
+const TOOLCHAIN_FILE: &str = "cmake/gcc-arm-none-eabi.cmake";
+
 pub fn init() -> anyhow::Result<()> {
     info!("Initializing CMake project...");
     debug!("Applying STM32 CMake initialization patches to CMakeLists.txt");
@@ -71,6 +77,19 @@ pub fn init() -> anyhow::Result<()> {
                  \n# ======================================================="
             .to_string(),
         marker: "wtr_link_packages(${CMAKE_PROJECT_NAME})".to_string(),
+    })?;
+
+    debug!("Applying debug build flag patches to {TOOLCHAIN_FILE}");
+    apply_patch(&Patch::Replace {
+        file: TOOLCHAIN_FILE.to_string(),
+        find: r#"set(CMAKE_C_FLAGS_DEBUG "-O0 -g3")"#.to_string(),
+        insert: r#"set(CMAKE_C_FLAGS_DEBUG "-O2 -g3")"#.to_string(),
+    })?;
+
+    apply_patch(&Patch::Replace {
+        file: TOOLCHAIN_FILE.to_string(),
+        find: r#"set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3")"#.to_string(),
+        insert: r#"set(CMAKE_CXX_FLAGS_DEBUG "-O2 -g3")"#.to_string(),
     })?;
 
     debug!("Finished applying CMake initialization patches");

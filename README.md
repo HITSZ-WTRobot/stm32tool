@@ -19,6 +19,7 @@
 - `UserCode/` 默认生成 `app.cpp`；仅当项目唯一 `.ioc` 文件声明 `Mcu.CPN=STM32H723VET6` 时，另生成 `memory.hpp`，不按 H7 系列或 `Mcu.Name=STM32H723VETx` 通配名称判断。
 - 工具内部维护初始依赖表，默认依赖为 `memory::StaticObject`；若环境中存在 `cpkg`，初始化时会静默调用 `cpkg init` 与 `cpkg add --offline memory::StaticObject`，并在根 `CMakeLists.txt` 中接入 `cmake/wtr_modules.cmake`；随后会询问是否立即执行 `cpkg sync`，在非交互环境（stderr 未连接终端）下跳过询问并提示手动执行。
 - 若环境中缺少 `cpkg`，工具会继续初始化，但需要手动将初始依赖表中的包（默认 `memory::StaticObject`）加入项目。
+- 默认 `.gitignore` 忽略 CubeMX 生成的 `cmake/stm32cubemx/`；`cmake/gcc-arm-none-eabi.cmake` 保持跟踪，并在 `init` 时把 C/C++ 的 Debug 优化档由 `-O0 -g3` 改写为 `-O2 -g3`。
 
 ### STM32H723VET6 内存段头文件
 

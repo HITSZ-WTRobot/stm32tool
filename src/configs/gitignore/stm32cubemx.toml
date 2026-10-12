@@ -12,6 +12,7 @@ ignore = [
     "/MX/",
     "/TouchGFX/",
     "/Utilities/",
+    "cmake/stm32cubemx/",
     ".startup/",
     "startup_stm32*.s",
     "*.ld",
