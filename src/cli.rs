@@ -15,9 +15,13 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     /// 初始化 STM32 CMake 项目
+    ///
+    /// 默认启用 C++20，生成 CMake 配置时输出兼容性警告；默认 .gitignore 保留 .ld 链接脚本。
     Init(InitArgs),
 
     /// 创建新的 STM32 CMake 项目
+    ///
+    /// 默认执行初始化，启用 C++20 并输出兼容性警告；使用 --skip-init 可跳过初始化。
     Create(CreateArgs),
 
     /// 清除生成的代码和构建文件
@@ -26,6 +30,8 @@ pub enum Commands {
     Purge,
 
     /// 使用 STM32CubeMX 生成 CMake 代码
+    ///
+    /// 生成时提示 C++20 兼容性；生成后使用 init 应用默认 C++20 配置。
     Generate,
 
     /// 更新 stm32tool 到最新版本

@@ -15,7 +15,6 @@ ignore = [
     "cmake/stm32cubemx/",
     ".startup/",
     "startup_stm32*.s",
-    "*.ld",
     ".settings/",
     ".ioc.xml",
     "*.ioc.bak",

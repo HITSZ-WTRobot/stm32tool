@@ -1,5 +1,5 @@
 use crate::patches::{Patch, apply_patch};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 const CMAKE_C_BLOCK: &str = r#"set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -8,7 +8,7 @@ set(CMAKE_C_EXTENSIONS ON)"#;
 const CMAKE_C_AND_CXX_BLOCK: &str = r#"set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -30,9 +30,16 @@ pub fn init() -> anyhow::Result<()> {
 
     apply_patch(&Patch::Replace {
         file: "CMakeLists.txt".to_string(),
+        find: "set(CMAKE_CXX_STANDARD 17)".to_string(),
+        insert: "set(CMAKE_CXX_STANDARD 20)".to_string(),
+    })?;
+
+    apply_patch(&Patch::Replace {
+        file: "CMakeLists.txt".to_string(),
         find: CMAKE_C_BLOCK.to_string(),
         insert: CMAKE_C_AND_CXX_BLOCK.to_string(),
     })?;
+    warn!("{}", super::CXX_STANDARD_WARNING);
 
     apply_patch(&Patch::Replace {
         file: "CMakeLists.txt".to_string(),

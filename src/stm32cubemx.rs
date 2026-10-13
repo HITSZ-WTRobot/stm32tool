@@ -36,6 +36,7 @@ pub fn generate_code() -> Result<()> {
         warn!("{error}");
         error
     })?;
+    warn!("{}", crate::initializers::CXX_STANDARD_WARNING);
     debug!(ioc_file = %ioc_file.display(), "Generating code from .ioc file");
     let ioc_file = ioc_file.to_string_lossy().to_string();
     let mut script = String::new();
